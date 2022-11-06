@@ -1,11 +1,17 @@
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters, CallbackQueryHandler
 import math
+from datetime import datetime as dt
 
 '''Доступные операции''' # обход опасностей, связанных с функцией eval()
 ALLOWED_NAMES = {
     k: v for k, v in math.__dict__.items() if not k.startswith("__")
 }
+
+def log_operation(data):
+    timer = dt.now().strftime('%H:%M:%S')
+    with open('log.csv', 'a') as file:
+        file.write(f'[{timer}]: {data}\n')
 
 
 def evaluate(expression):
@@ -32,19 +38,24 @@ async def calc(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # Вычисление выражения и обработка ошибок
     try:
         result = evaluate(expression)
-        await update.message.reply_text(f"Результат: {result}")
+        await update.message.reply_text(f"Результат:   {result}")
+        log_str = f'{expression} = {result}'
+        log_operation(log_str)
     except SyntaxError:
         # Некорректное выражение
-        update.message.reply_text("Вы ввели некорректное выражение.")
+        await update.message.reply_text(f"Вы ввели некорректное выражение. Доступные выражения: {ALLOWED_NAMES}"
+                                        f"Возведение в квадрат - **; "
+                                        f"Комплексные числа - j")
     except (NameError, ValueError) as err:
         # Если пользователь попытался использовать неразрешенное имя
         # или неверное значение в переданной функции
-        update.message.reply_text(err)
+        await update.message.reply_text(f"Вы ввели некорректное выражение. {err}"
+                                        f"Возведение в квадрат - **; "
+                                        f"Комплексные числа - j")
 
 
-app = ApplicationBuilder().token("YOUR TOKEN").build()
+app = ApplicationBuilder().token("5717990866:AAEfna2WypYLhw4U2j4WIq1M6pM1ggb_TS0").build()
 
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, calc))
 
 app.run_polling()
-
