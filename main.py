@@ -54,7 +54,7 @@ async def calc(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                                         f"Комплексные числа - j")
 
 
-app = ApplicationBuilder().token("5717990866:AAEfna2WypYLhw4U2j4WIq1M6pM1ggb_TS0").build()
+app = ApplicationBuilder().token("YOUR TOKEN").build()
 
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, calc))
 
